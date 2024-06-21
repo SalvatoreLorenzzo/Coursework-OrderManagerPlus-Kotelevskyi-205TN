@@ -1,0 +1,415 @@
+﻿<Window x:Class="OrderManagerPlus.Windows.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OrderManagerPlus"
+        xmlns:converters="clr-namespace:OrderManagerPlus.Converters"
+        mc:Ignorable="d"
+        Title="OrderManagerPlus" MinHeight="450" MinWidth="800"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Background="#FAFAFA"
+        KeyDown="Window_KeyDown">
+
+    <Window.CommandBindings>
+        <!-- Існуючі командні прив'язки -->
+        <CommandBinding Command="{x:Static local:CustomCommands.SetStatusNotCompleted}" Executed="SetStatusNotCompleted_Executed" CanExecute="SetStatus_CanExecute"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.SetStatusPartiallyCompleted}" Executed="SetStatusPartiallyCompleted_Executed" CanExecute="SetStatus_CanExecute"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.SetStatusNotPaid}" Executed="SetStatusNotPaid_Executed" CanExecute="SetStatus_CanExecute"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.SetStatusPaid}" Executed="SetStatusPaid_Executed" CanExecute="SetStatus_CanExecute"/>
+
+        <!-- Нові командні прив'язки -->
+        <CommandBinding Command="{x:Static local:CustomCommands.ToggleMenu}" Executed="ToggleMenu_Executed" />
+        <CommandBinding Command="{x:Static local:CustomCommands.AddCustomer}" Executed="AddCustomer_Executed"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.AddTask}" Executed="AddTask_Executed"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.AddOrder}" Executed="AddOrder_Executed"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.Settings}" Executed="Settings_Executed"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.Statistics}" Executed="Statistics_Executed"/>
+        <CommandBinding Command="{x:Static local:CustomCommands.Payment}" Executed="Payment_Executed"/>
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <!-- Існуючі хоткеї -->
+        <KeyBinding Command="{x:Static local:CustomCommands.SetStatusNotCompleted}" Key="D1" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.SetStatusPartiallyCompleted}" Key="D2" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.SetStatusNotPaid}" Key="D3" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.SetStatusPaid}" Key="D4" Modifiers="Control"/>
+
+        <!-- Нові хоткеї -->
+        <KeyBinding Command="{x:Static local:CustomCommands.ToggleMenu}" Key="Tab"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.AddCustomer}" Key="C" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.AddTask}" Key="T" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.AddOrder}" Key="O" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.Settings}" Key="I" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.Statistics}" Key="S" Modifiers="Control"/>
+        <KeyBinding Command="{x:Static local:CustomCommands.Payment}" Key="P" Modifiers="Control"/>
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <!-- Стиль для кнопок у меню -->
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="180"/>
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для текстових блоків заголовків -->
+        <Style x:Key="HeaderTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="5,5,0,5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Стиль для кнопок додавання/видалення -->
+        <Style x:Key="AddRemoveButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для ListView -->
+        <Style x:Key="ListViewStyle" TargetType="ListView">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Margin" Value="5"/>
+                        <Setter Property="Padding" Value="5"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListViewItem">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#005A9E"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для DataGrid -->
+        <Style x:Key="DataGridStyle" TargetType="DataGrid">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="GridLinesVisibility" Value="Vertical"/>
+            <Setter Property="AlternatingRowBackground" Value="#F5F5F5"/>
+            <Setter Property="HeadersVisibility" Value="All"/>
+            <Setter Property="ColumnHeaderHeight" Value="60"/>
+            <Setter Property="RowHeight" Value="35"/>
+            <Setter Property="CanUserSortColumns" Value="True"/>
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#007ACC"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontSize" Value="16"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="BorderBrush" Value="Black"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="5"/>
+                        <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                        <Setter Property="TextBlock.TextWrapping" Value="Wrap"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RowStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="SnapsToDevicePixels" Value="True"/>
+                        <Setter Property="ValidationErrorTemplate" Value="{x:Null}"/>
+                        <Setter Property="BorderBrush" Value="#D9D9D9"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="5"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGrid">
+                        <Border BorderBrush="#D9D9D9" BorderThickness="1" CornerRadius="5">
+                            <ScrollViewer x:Name="DG_ScrollViewer" Focusable="false">
+                                <ScrollViewer.Template>
+                                    <ControlTemplate TargetType="ScrollViewer">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="*"/>
+                                            </Grid.RowDefinitions>
+                                            <DataGridColumnHeadersPresenter Grid.Row="0"/>
+                                            <ScrollContentPresenter Grid.Row="1"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </ScrollViewer.Template>
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для CheckBox -->
+        <Style x:Key="CheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="5,5,0,5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <!-- Стиль для Border -->
+        <Style x:Key="BorderStyle" TargetType="Border">
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+
+        <!-- Конвертер для статусу -->
+        <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
+
+        <!-- CollectionViewSource для сортування замовлень -->
+        <CollectionViewSource x:Key="SortedOrders" Source="{Binding Orders}"/>
+
+        <!-- Анімація для розширення меню -->
+        <Storyboard x:Key="ExpandMenu">
+            <DoubleAnimation Storyboard.TargetName="SlideMenu"
+                         Storyboard.TargetProperty="Width"
+                         From="0" To="200" Duration="0:0:0.3"
+                         AccelerationRatio="0.5" DecelerationRatio="0.5"/>
+            <DoubleAnimation Storyboard.TargetName="MenuTransform"
+                         Storyboard.TargetProperty="X"
+                         From="0" To="-200" Duration="0:0:0.3"
+                         AccelerationRatio="0.5" DecelerationRatio="0.5"/>
+        </Storyboard>
+        <!-- Анімація для зменшення меню -->
+        <Storyboard x:Key="CollapseMenu">
+            <DoubleAnimation Storyboard.TargetName="SlideMenu"
+                         Storyboard.TargetProperty="Width"
+                         From="200" To="0" Duration="0:0:0.3"
+                         AccelerationRatio="0.5" DecelerationRatio="0.5"/>
+            <DoubleAnimation Storyboard.TargetName="MenuTransform"
+                         Storyboard.TargetProperty="X"
+                         From="-200" To="0" Duration="0:0:0.3"
+                         AccelerationRatio="0.5" DecelerationRatio="0.5"/>
+        </Storyboard>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto">
+                <ColumnDefinition.Style>
+                    <Style TargetType="ColumnDefinition">
+                        <Setter Property="Width" Value="0"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsMenuVisible}" Value="True">
+                                <Setter Property="Width" Value="200"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ColumnDefinition.Style>
+            </ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <DockPanel Grid.Column="0">
+            <StackPanel DockPanel.Dock="Top" Orientation="Vertical" Margin="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Прямокутник для сортування списку -->
+                    <Border Grid.Column="0" Style="{StaticResource BorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Сортування списку" Style="{StaticResource HeaderTextBlockStyle}"/>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="150">
+                                <StackPanel x:Name="ListSettingsPanel" Margin="5"/>
+                            </ScrollViewer>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button Content="+" Click="AddListViewFilter_Click" Style="{StaticResource AddRemoveButtonStyle}"/>
+                                <Button Content="-" Click="RemoveLastListViewFilter_Click" Style="{StaticResource AddRemoveButtonStyle}" Visibility="Collapsed" x:Name="RemoveListViewFilterButton"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Прямокутник для сортування таблиці -->
+                    <Border Grid.Column="1" Style="{StaticResource BorderStyle}">
+                        <StackPanel>
+                            <TextBlock Text="Сортування таблиці" Style="{StaticResource HeaderTextBlockStyle}"/>
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="150">
+                                <StackPanel x:Name="TableSettingsPanel" Margin="5"/>
+                            </ScrollViewer>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button Content="+" Click="AddTableViewFilter_Click" Style="{StaticResource AddRemoveButtonStyle}"/>
+                                <Button Content="-" Click="RemoveLastTableViewFilter_Click" Style="{StaticResource AddRemoveButtonStyle}" Visibility="Collapsed" x:Name="RemoveTableViewFilterButton"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </StackPanel>
+
+            <ListView x:Name="OrdersListView" Margin="5"
+                      ItemsSource="{Binding Source={StaticResource SortedOrders}}"
+                      SelectedItem="{Binding SelectedOrder}"
+                      MouseDoubleClick="OrdersListView_MouseDoubleClick"
+                      Style="{StaticResource ListViewStyle}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Background" Value="{Binding Status, Converter={StaticResource StatusToColorConverter}}"/>
+                        <Setter Property="Margin" Value="5"/>
+                        <Setter Property="Padding" Value="5"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Замовник" DisplayMemberBinding="{Binding Customer.FullName}">
+                            <GridViewColumn.HeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
+                                </Style>
+                            </GridViewColumn.HeaderContainerStyle>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Група" DisplayMemberBinding="{Binding Customer.Group}">
+                            <GridViewColumn.HeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
+                                </Style>
+                            </GridViewColumn.HeaderContainerStyle>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Сфера" DisplayMemberBinding="{Binding Task.Category}">
+                            <GridViewColumn.HeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
+                                </Style>
+                            </GridViewColumn.HeaderContainerStyle>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Завдання" DisplayMemberBinding="{Binding Task.Name}">
+                            <GridViewColumn.HeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
+                                </Style>
+                            </GridViewColumn.HeaderContainerStyle>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Ціна" DisplayMemberBinding="{Binding Price}">
+                            <GridViewColumn.HeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
+                                </Style>
+                            </GridViewColumn.HeaderContainerStyle>
+                        </GridViewColumn>
+                        <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding Status}">
+                            <GridViewColumn.HeaderContainerStyle>
+                                <Style TargetType="GridViewColumnHeader">
+                                    <EventSetter Event="Click" Handler="GridViewColumnHeader_Click"/>
+                                </Style>
+                            </GridViewColumn.HeaderContainerStyle>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <StackPanel Orientation="Vertical" Margin="5">
+                <CheckBox x:Name="OnlyOrderedCheckBox" Content="Тільки замовлені" Checked="OnlyOrderedCheckBox_Checked" Unchecked="OnlyOrderedCheckBox_Unchecked" Style="{StaticResource CheckBoxStyle}"/>
+                <ScrollViewer HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible">
+                    <DataGrid x:Name="OrdersDataGrid" Margin="5"
+                          AutoGenerateColumns="False"
+                          MouseDoubleClick="OrdersDataGrid_MouseDoubleClick"
+                          Sorting="OrdersDataGrid_Sorting"
+                          Style="{StaticResource DataGridStyle}"
+                          IsReadOnly="True"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Група" Binding="{Binding Group}"/>
+                            <DataGridTextColumn Header="Замовник" Binding="{Binding Customer.FullName}"/>
+                            <!-- Динамічно генеровані колонки для задач будуть додані в коді C# -->
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </ScrollViewer>
+            </StackPanel>
+        </DockPanel>
+
+        <Grid Grid.Column="1">
+            <Border x:Name="SlideMenu" Background="LightGray" HorizontalAlignment="Right" Width="0">
+                <StackPanel>
+                    <Button Content="Додати замовника" Click="AddCustomer_Click" Style="{StaticResource MenuButtonStyle}"/>
+                    <Button Content="Додати завдання" Click="AddTask_Click" Style="{StaticResource MenuButtonStyle}"/>
+                    <Button Content="Додати замовлення" Click="AddOrder_Click" Style="{StaticResource MenuButtonStyle}"/>
+                    <Button Content="Налаштування" Click="Settings_Click" Style="{StaticResource MenuButtonStyle}"/>
+                    <Button Content="Статистика" Click="Statistics_Click" Style="{StaticResource MenuButtonStyle}"/>
+                    <Button Content="Оплата" Click="Payment_Click" Style="{StaticResource MenuButtonStyle}"/>
+                </StackPanel>
+            </Border>
+            <Grid HorizontalAlignment="Right" VerticalAlignment="Top" Width="40" Height="40"
+          Cursor="Hand" MouseLeftButtonDown="ToggleMenu_Click" Margin="-40,5,0,0">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="MenuTransform" X="0"/>
+                </Grid.RenderTransform>
+                <Border Background="#007ACC" BorderBrush="Black" BorderThickness="2" CornerRadius="10">
+                    <TextBlock Text="☰" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
